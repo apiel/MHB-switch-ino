@@ -1,6 +1,7 @@
 #include <ESP8266mDNS.h>
 
-#define DEVICE_NAME "ESP_test"
+#define DEVICE_NAME "MHB test"
+#define DEVICE_ID "MHB_switch"
 #define WEMOS // for test
 
 void setup(void){
