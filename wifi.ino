@@ -10,6 +10,7 @@ void wifiCheck(){
 }
 
 void wifiConnect(){
+  // wifi_set_sleep_type(NONE_SLEEP_T); // for upnp
   WiFi.begin(MYWIFISSID, MYWIFIPASSWORD);
   Serial.println("");
 

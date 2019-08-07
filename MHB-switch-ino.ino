@@ -13,10 +13,12 @@ void setup(void){
   }
 
   relayInit();
+  upnpInit();
   httpdInit();
 }
 
 void loop(void){
   httpdHandle();
+  upnpHandle();
   wifiCheck();
 }
