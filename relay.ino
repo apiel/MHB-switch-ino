@@ -41,4 +41,8 @@ String relayGetStatus() {
   return "ON";
 }
 
+int relayGetState() {
+  return relayState;
+}
+
 

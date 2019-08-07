@@ -68,6 +68,33 @@ void handleUpnpSetup() {
   server.send(200, "application/xml", message);
 }
 
+// curl -A '' -X POST -H 'Content-type: text/xml; charset="utf-8"' -H 'SOAPACTION: "urn:Belkin:service:basicevent:1#GetBinaryState"' -s http://192.168.0.25/upnp/control/basicevent1 --data '<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:SetBinaryState xmlns:u="urn:Belkin:service:basicevent:1"><BinaryState>1</BinaryState></u:SetBinaryState></s:Body></s:Envelope>'
+// https://gist.github.com/aussieade/7647e2c892bf511510566a7d95f40d95
+
+void handleUpnpController(){
+  Serial.println("> Handle Upnp controller.");
+  if (server.args()) {
+    String body = server.arg(0);
+    if (body.indexOf("SetBinaryState") != -1) {
+      Serial.println("Upnp controller set state.");
+      if (body.indexOf("<BinaryState>1</BinaryState>") != -1) {
+        relayOn();
+      } else {
+        relayOff();
+      }
+    }
+  }
+  String message = "<?xml version=\"1.0\"?>";
+  message += "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">";
+  message += "<s:Body>";
+  message += "<u:GetBinaryStateResponse xmlns:u=\"urn:Belkin:service:basicevent:1\">";
+  message += "<BinaryState>" + String(relayGetState()) + "</BinaryState>";
+  message += "</u:GetBinaryStateResponse>";
+  message += "</s:Body>";
+  message += "</s:Envelope>";
+  server.send(200, "application/xml", message);
+}
+
 void handleNotFound(){
   Serial.println("> Handle not found.");
   server.send(404, "text/plain", "Not found");
@@ -80,6 +107,7 @@ void httpdInit(){
   server.on("/off", handleRelayOff);
   server.on("/toggle", handleRelayToggle);
   server.on("/wemo/setup.xml", handleUpnpSetup);
+  server.on("/upnp/control/basicevent1", handleUpnpController);
   server.onNotFound(handleNotFound);
 
   server.begin();
