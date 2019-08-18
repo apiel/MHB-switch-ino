@@ -1,4 +1,5 @@
 #include <ESP8266WebServer.h>
+#include <ESP8266httpUpdate.h>
 
 ESP8266WebServer server(80);
 
@@ -10,6 +11,20 @@ void handleRoot() {
   message += "mac address:  " + wifiGetMac() + "\n";
   message += "relay status: " + relayGetStatus() + "\n";
   server.send(200, "text/plain", message);
+}
+
+void handleOta() {
+  Serial.println("> Handle Ota.");
+  if (server.hasArg("host") && server.hasArg("path")) { 
+    String host = server.arg("host");
+    String path = server.arg("path");
+
+    server.send ( 200, "text/plain", "Try to update firmware.");
+    ESPhttpUpdate.update(host, 80, path);
+  }
+  else {
+    server.send ( 400, "text/plain", "Update firmware parameter missing. Provide host and path e.g: http://sonoff.local/ota?host=192.168.0.120&path=/firmware.bin");
+  }  
 }
 
 void handleReboot() {
@@ -103,6 +118,7 @@ void handleNotFound(){
 void httpdInit(){
   server.on("/", handleRoot);
   server.on("/reboot", handleReboot);
+  server.on("/ota", handleOta);
   server.on("/on", handleRelayOn);
   server.on("/off", handleRelayOff);
   server.on("/toggle", handleRelayToggle);
