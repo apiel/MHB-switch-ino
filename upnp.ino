@@ -9,7 +9,7 @@ IPAddress MCAST_ADDR(239, 255, 255, 250);
 
 unsigned long previousMillis = 0;
 const unsigned long interval = 10UL*1000UL; // 10sec
-const unsigned long timeout = millis() + 3UL*60UL*1000UL; // 3min // millis might not be necessary
+const unsigned long timeout = 3UL*60UL*1000UL; // 3min
 
 void upnpHandle() {
   unsigned long currentMillis = millis();
