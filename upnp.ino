@@ -1,94 +1,27 @@
 #include <WiFiUdp.h>
 
-#include <lwip/udp.h>
-#include <lwip/igmp.h>
-
-#define MCAST_PORT 1900
+#define MCAST_PORT_CLIENT 50000
+// #define MCAST_PORT_SERVER 1900
 
 WiFiUDP udp;
 
 IPAddress MCAST_ADDR(239, 255, 255, 250);
 
-UdpContext * _server;
-
-void upnpInit() {
-  Serial.println("Upnp init.");
-  // udp.beginMulticast(WiFi.localIP(), MCAST_ADDR, MCAST_PORT); // somehow do something
-  // udp.begin(MCAST_PORT);
-
-  // upnpSend(MCAST_ADDR, 50000); // could send a multicast packet every 10 sec (for first 3min)
-
-/*
-  ip_addr_t ifaddr;
-  ifaddr.addr = WiFi.localIP();
-  ip_addr_t multicast_addr;
-  multicast_addr.addr = (uint32_t) MCAST_ADDR;
-  igmp_joingroup(&ifaddr, &multicast_addr);
-  */
-
-
-  _server = new UdpContext;
-  _server->ref();
-
-  ip_addr_t ifaddr;
-  ifaddr.addr = WiFi.localIP();
-  ip_addr_t multicast_addr;
-  multicast_addr.addr = (uint32_t) MCAST_ADDR;
-  if (igmp_joingroup(&ifaddr, &multicast_addr) != ERR_OK ) {
-    Serial.println("SSDP failed to join igmp group");
-  } else if (_server->listen(*IP_ADDR_ANY, MCAST_PORT)) {
-    _server->setMulticastInterface(ifaddr);
-    _server->setMulticastTTL(1);
-    _server->onRx(yoyo);
-    if (!_server->connect(multicast_addr, MCAST_PORT)) {
-      Serial.println("SSDP failed to connect");
-    }
-  } else {
-    Serial.println("SSDP failed to listen");
-  }
-}
-
-
-void yoyo() {
-  if (_server->next()) {
-    Serial.println("yoyo");
-    Serial.println(_server->getRemoteAddress());
-    Serial.println(_server->getRemotePort());
-
-    int ssdplen = _server->getSize();
-    // Allocate a byte extra before and after the message, this makes the rest of the code
-    // work with fewer tests or code duplication.
-    char *buffer = (char *)malloc(ssdplen+2);
-    _server->read(buffer+1, ssdplen);  // FIXME return value ?
-    buffer[0] = '\r';
-    buffer[ssdplen+1] = 0;
-
-    free(buffer);
-
-    Serial.println(buffer); 
-  }
-}
-
+unsigned long previousMillis = 0;
+const unsigned long interval = 10UL*1000UL; // 10sec
+const unsigned long timeout = millis() + 3UL*60UL*1000UL; // 3min // millis might not be necessary
 
 void upnpHandle() {
-  char incomingPacket[255];
-  int packetSize = udp.parsePacket();
-  if (packetSize) {
-    // receive incoming UDP packets
-    // Serial.printf("Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
-    int len = udp.read(incomingPacket, 255);
-    if (len > 0) {
-      incomingPacket[len] = 0;
-    }
-    // Serial.printf("UDP packet contents: %s\n", incomingPacket);
-    if (String(incomingPacket).indexOf("ssdp:discover") != -1) {
-      Serial.printf("Received ssdp:discover request from %s on port %d\n", udp.remoteIP().toString().c_str(), udp.remotePort());
-      upnpSend(udp.remoteIP(), udp.remotePort());
-    }
+  unsigned long currentMillis = millis();
+  if (currentMillis < timeout && currentMillis - previousMillis >= interval) {
+    previousMillis += interval;
+    upnpSend(MCAST_ADDR, MCAST_PORT_CLIENT); // could send a multicast packet every 10 sec
   }
 }
 
+// should we call it SSDP?
 void upnpSend(IPAddress ip, int port) {
+      Serial.println("Send udp multicast packet.");
       String message = "HTTP/1.1 200 OK\r\n";;
       message += "CACHE-CONTROL: max-age=86400\r\n";
       message += "DATE: Fri, 15 Apr 2016 04:56:29 GMT\r\n";
@@ -105,14 +38,3 @@ void upnpSend(IPAddress ip, int port) {
       udp.write(message.c_str());
       udp.endPacket();
 }
-
-/*
-Received 107 bytes from 192.168.0.130, port 50000
-UDP packet contents: M-SEARCH * HTTP/1.1
-HOST: 239.255.255.250:1900
-MAN: "ssdp:discover"
-MX: 15
-ST: urn:Belkin:device:**
-*/
-
-
