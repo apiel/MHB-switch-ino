@@ -21,10 +21,13 @@ void buttonHandle() {
 
   if (btn.clicks == 1) { // single click
     Serial.println("Button click.");
+    relayToggle();
   } else if (btn.clicks > 4) { // more than 4 click
     Serial.println("Button mutliple click.");
   } else if (btn.clicks < 0) { // long press over 3 second
     Serial.println("Button long click.");
+    Serial.println("Reboot...");
+    ESP.reset();
   }
 }
 

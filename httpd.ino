@@ -3,9 +3,16 @@
 
 ESP8266WebServer server(80);
 
+#ifdef WEMOS
+    #define PIN_LED 2
+#else
+    #define PIN_LED 13
+#endif
+
 void handleRoot() {
   Serial.println("> Handle root.");
   String message = "Hello from esp8266 MHB-switch.\n\n";
+  message += "version:      " + String(FIRMWARE_VERSION) + "\n";
   message += "device name:  " + String(DEVICE_NAME) + "\n";
   message += "device id:    " + String(DEVICE_ID) + "\n";
   message += "mac address:  " + wifiGetMac() + "\n";
@@ -15,15 +22,30 @@ void handleRoot() {
 
 void handleOta() {
   Serial.println("> Handle Ota.");
-  if (server.hasArg("host") && server.hasArg("path")) { 
-    String host = server.arg("host");
-    String path = server.arg("path");
+  if (server.hasArg("url")) { 
+    String url = server.arg("url");
 
-    server.send ( 200, "text/plain", "Try to update firmware.");
-    ESPhttpUpdate.update(host, 80, path);
+    WiFiClient client;
+    ESPhttpUpdate.setLedPin(PIN_LED, LOW);
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, url);
+   
+    if (ret == HTTP_UPDATE_FAILED) {
+      String message = "HTTP_UPDATE_FAILD Error (" + String(ESPhttpUpdate.getLastError()) + "): " + ESPhttpUpdate.getLastErrorString();
+      server.send ( 200, "text/plain", message);
+      Serial.println(message);
+    } else if (ret == HTTP_UPDATE_NO_UPDATES) {
+      server.send ( 200, "text/plain", "HTTP_UPDATE_NO_UPDATES.");
+      Serial.println("HTTP_UPDATE_NO_UPDATES");
+    } else if (ret == HTTP_UPDATE_OK) {
+      server.send ( 200, "text/plain", "HTTP_UPDATE_OK.");
+      Serial.println("HTTP_UPDATE_OK");
+    } else {
+      server.send ( 200, "text/plain", "Try to update firmware with unknown response."); 
+      Serial.println("UNKNOWN_RETURN");
+    }
   }
   else {
-    server.send ( 400, "text/plain", "Update firmware parameter missing. Provide host and path e.g: http://sonoff.local/ota?host=192.168.0.120&path=/firmware.bin");
+    server.send ( 400, "text/plain", "Update firmware parameter missing. Provide host and path e.g: http://sonoff.local/ota?url=http://192.168.0.120/firmware.bin");
   }  
 }
 
