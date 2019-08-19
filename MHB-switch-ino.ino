@@ -1,11 +1,11 @@
 #include <ESP8266mDNS.h>
 
-#define FIRMWARE_VERSION "0.0.3"
+#define FIRMWARE_VERSION "0.0.4"
 #define DEVICE_NAME "MHB test"
 #define DEVICE_ID "MHB_switch"
 
 // #define WEMOS // for test
-// for sonoff use generic esp8266
+// for sonoff use generic esp8266 - 1M no Spiffs
 
 void setup(void){
   Serial.begin(115200);
