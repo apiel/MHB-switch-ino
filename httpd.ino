@@ -75,6 +75,12 @@ void handleRelayToggle() {
   server.send(200, "text/plain", message); 
 }
 
+void handleRelayTimer() {
+  Serial.println("> Handle relay timer.");
+  relaySetTimer();
+  server.send(200, "text/plain", "Set relay timer."); 
+}
+
 void handleUpnpSetup() {
   Serial.println("> Handle Upnp setup.");
   String uid = String(DEVICE_ID) + "-" + wifiGetMac();
@@ -144,6 +150,7 @@ void httpdInit(){
   server.on("/on", handleRelayOn);
   server.on("/off", handleRelayOff);
   server.on("/toggle", handleRelayToggle);
+  server.on("/timer", handleRelayTimer);
   server.on("/wemo/setup.xml", handleUpnpSetup);
   server.on("/upnp/control/basicevent1", handleUpnpController);
   server.onNotFound(handleNotFound);

@@ -9,6 +9,9 @@
 
 int relayState = RELAY_OFF;
 
+unsigned long relayTimeout = 0;
+const unsigned long relayDuration = 3UL*60UL*1000UL; // 3min
+
 void relayInit() {
   pinMode(PIN_RELAY, OUTPUT);
 }
@@ -45,4 +48,29 @@ int relayGetState() {
   return relayState;
 }
 
+void relaySetTimer() {
+  relayOn();
+  Serial.println("Relay set timer.");
+  relayTimeout = millis() + relayDuration;
+}
+
+void relayEndTimer() {
+  Serial.println("Relay end timer.");
+  relayOff();
+  relayTimeout = 0;
+}
+
+void relayToggleTimer() {
+  if (relayTimeout > 0) {
+    relayEndTimer();
+  } else {
+    relaySetTimer();
+  }
+}
+
+void relayHandleTimer() {
+  if (relayTimeout > 0 && millis() > relayTimeout) {
+    relayEndTimer();
+  }
+}
 

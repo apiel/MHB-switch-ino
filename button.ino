@@ -21,7 +21,11 @@ void buttonHandle() {
 
   if (btn.clicks == 1) { // single click
     Serial.println("Button click.");
-    relayToggle();
+    #ifdef RELAY_TIMER
+      relayToggleTimer();
+    #else
+      relayToggle();
+    #endif
   } else if (btn.clicks > 4) { // more than 4 click
     Serial.println("Button mutliple click.");
   } else if (btn.clicks < 0) { // long press over 3 second
