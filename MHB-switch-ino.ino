@@ -1,11 +1,11 @@
 #include <ESP8266mDNS.h>
 
-#define FIRMWARE_VERSION "0.0.5"
+#define FIRMWARE_VERSION "0.0.6"
 #define DEVICE_NAME "wc light"
 #define DEVICE_ID "MHB_switch"
 
 // #define WEMOS // for test
-#define RELAY_TIMER
+// #define RELAY_TIMER
 // for sonoff use generic esp8266 - 1M no Spiffs
 
 void setup(void){
@@ -29,4 +29,6 @@ void loop(void){
   wifiCheck();
   buttonHandle();
   relayHandleTimer();
+  arpHandle();
 }
+
