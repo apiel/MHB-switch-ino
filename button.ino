@@ -21,7 +21,7 @@ void buttonHandle() {
 
   if (btn.clicks == 1) { // single click
     Serial.println("Button click.");
-    #ifdef RELAY_TIMER
+    #ifdef BTN_RELAY_TIMER
       relayToggleTimer();
     #else
       relayToggle();
