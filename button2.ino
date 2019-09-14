@@ -1,7 +1,6 @@
 #ifdef BTN2_ENABLE
 
 #include <ClickButton.h>
-#include <ESP8266HTTPClient.h>
 
 #define PIN_BUTTON2 14 // D5
 
@@ -31,7 +30,6 @@ void button2Handle() {
     String params = "&btn=2&clicks=" + String(btn2.clicks);
     callMiddleware("button", params);
   }
-
 }
 
 #endif

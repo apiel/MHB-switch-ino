@@ -33,5 +33,10 @@ void buttonHandle() {
     Serial.println("Reboot...");
     ESP.reset();
   }
+
+  if (btn.clicks != 0) {
+    String params = "&btn=1&clicks=" + String(btn.clicks);
+    callMiddleware("button", params);
+  }
 }
 
