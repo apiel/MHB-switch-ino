@@ -1,13 +1,13 @@
 #include <ESP8266mDNS.h>
 
 #define FIRMWARE_VERSION "0.0.8"
-#define DEVICE_NAME "kitchen light"
+#define DEVICE_NAME "test btn2"
 #define DEVICE_ID "MHB_switch"
 
 // #define WEMOS // for test
 // #define BTN_RELAY_TIMER
 // #define RF_ENABLE
-// #define BTN2_ENABLE
+#define BTN2_ENABLE
 
 // for sonoff basic use generic esp8266 - 1M no Spiffs - DOUT
 
