@@ -28,16 +28,8 @@ void button2Handle() {
   }
 
   if (btn2.clicks != 0) {
-    HTTPClient http;  //Declare an object of class HTTPClient
-  
-    String url = "http://192.168.0.122:3000/esp/button?device=" + String(DEVICE_NAME) + "&btn=2&clicks=" + String(btn2.clicks) + "&mac=" + wifiGetMac() + "&ip=" + WiFi.localIP();
-    url.replace(" ", "+");
-    Serial.println(url);
-    http.begin(url);
-    int httpCode = http.GET();
-    Serial.print(httpCode);
-    Serial.println(" http res.");
-    http.end();
+    String params = "&btn=2&clicks=" + String(btn2.clicks);
+    callMiddleware("button", params);
   }
 
 }
