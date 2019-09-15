@@ -24,9 +24,6 @@ void setup(void){
   relayInit();
   httpdInit();
   buttonInit();
-  #ifdef BTN2_ENABLE
-    button2Init();
-  #endif
   #ifdef RF_ENABLE
     rfInit();
   #endif
@@ -39,8 +36,5 @@ void loop(void){
   buttonHandle();
   relayHandleTimer();
   arpHandle();
-  #ifdef BTN2_ENABLE
-    button2Handle();
-  #endif
 }
 
