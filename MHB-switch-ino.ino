@@ -1,10 +1,10 @@
 #include <ESP8266mDNS.h>
 
-#define FIRMWARE_VERSION "0.0.8"
-#define DEVICE_NAME "test btn2"
+#define FIRMWARE_VERSION "0.0.10"
+#define DEVICE_NAME "wemos light"
 #define DEVICE_ID "MHB_switch"
 
-// #define WEMOS // for test
+#define WEMOS // for test
 // #define BTN_RELAY_TIMER
 // #define RF_ENABLE
 #define BTN2_ENABLE
@@ -27,11 +27,12 @@ void setup(void){
   #ifdef RF_ENABLE
     rfInit();
   #endif
+  SSDPbegin();
 }
 
 void loop(void){
   httpdHandle();
-  upnpHandle();
+  SSDPhandle();
   wifiCheck();
   buttonHandle();
   relayHandleTimer();
