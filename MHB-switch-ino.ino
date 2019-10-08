@@ -1,7 +1,6 @@
 #include <ESP8266mDNS.h>
 
 #define FIRMWARE_VERSION "0.0.11"
-#define DEVICE_NAME "wemos light"
 #define DEVICE_ID "MHB_switch"
 
 #define WEMOS // for test
@@ -16,8 +15,9 @@ void setup(void){
   Serial.print("Firmware version ");
   Serial.println(FIRMWARE_VERSION);
   wifiConnect();
+  eepromBegin();
 
-  if (MDNS.begin(DEVICE_NAME)) {
+  if (MDNS.begin(String(DEVICE_ID) + " " + eepromRead())) {
     Serial.println("MDNS responder started");
   }
 
