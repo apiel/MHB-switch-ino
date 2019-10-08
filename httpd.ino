@@ -149,6 +149,11 @@ void handleUpnpController(){
   server.send(200, "application/xml", message);
 }
 
+void handlePing() {
+  Serial.println("> Handle ping.");
+  server.send(200, "text/plain", "pong");
+}
+
 void handleNotFound(){
   Serial.println("> Handle not found.");
   server.send(404, "text/plain", "Not found");
@@ -156,6 +161,7 @@ void handleNotFound(){
 
 void httpdInit(){
   server.on("/", handleRoot);
+  server.on("/ping", handlePing);
   server.on("/reboot", handleReboot);
   server.on("/name", handleName);
   server.on("/ota", handleOta);

@@ -1,9 +1,9 @@
 #include <ESP8266mDNS.h>
 
-#define FIRMWARE_VERSION "0.0.11"
+#define FIRMWARE_VERSION "0.0.13"
 #define DEVICE_ID "MHB_switch"
 
-#define WEMOS // for test
+// #define WEMOS // for test
 // #define BTN_RELAY_TIMER
 // #define RF_ENABLE
 #define BTN2_ENABLE
