@@ -1,6 +1,6 @@
 #include <ESP8266mDNS.h>
 
-#define FIRMWARE_VERSION "0.0.10"
+#define FIRMWARE_VERSION "0.0.11"
 #define DEVICE_NAME "wemos light"
 #define DEVICE_ID "MHB_switch"
 

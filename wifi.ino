@@ -2,14 +2,22 @@
 #include <WiFiClient.h>
 #include <MyWifiSettings.h>
 
-void wifiCheck(){
-  if (WiFi.status() != WL_CONNECTED) { // this might not be enough
+void wifiDisconnected() {
     Serial.println("\nDisconnected from Wifi, reset.");
     ESP.reset();
+}
+
+void wifiCheck(){
+  if (WiFi.status() != WL_CONNECTED) {
+    wifiDisconnected();
   }
 }
 
 void wifiConnect(){
+  WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event) {
+    wifiDisconnected();
+  });
+  
   // wifi_set_sleep_type(NONE_SLEEP_T); // for upnp
   WiFi.begin(MYWIFISSID, MYWIFIPASSWORD);
   Serial.println("");
