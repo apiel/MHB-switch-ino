@@ -23,9 +23,13 @@ void wifiConnect(){
   Serial.println("");
 
   // Wait for connection
+  int attempt = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    if (attempt++ > 100) {
+      wifiDisconnected();
+    }
   }
   Serial.println("");
   Serial.print("IP address: ");
