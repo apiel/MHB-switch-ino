@@ -3,7 +3,7 @@
 #include <MyWifiSettings.h>
 
 void wifiDisconnected() {
-    Serial.println("\nDisconnected from Wifi, reset.");
+    Serial.println("\nDisconnected from Wifi, try to reconnect...");
     // ESP.reset();
     wifiReConnect();
 }
@@ -11,7 +11,7 @@ void wifiDisconnected() {
 #define MAX_RETRY_WIFI_CHECK 3
 unsigned int retryWifiCheck = 0;
 unsigned long lastWifiCheck = 0;
-const unsigned long intervalWifiCheck = 10UL*1000UL; // 10sec
+const unsigned long intervalWifiCheck = 60UL*1000UL; // 1min
 bool wifiCheckWithUrl() {
   if (millis() > lastWifiCheck + intervalWifiCheck) {
     HTTPClient http;
@@ -22,11 +22,12 @@ bool wifiCheckWithUrl() {
     http.end();
     lastWifiCheck = millis();
     if (httpCode > 0) {
-      retryWifiCheck++;
-    } else {
       retryWifiCheck = 0;
+    } else {
+      retryWifiCheck++;
     }
     if (retryWifiCheck > MAX_RETRY_WIFI_CHECK) {
+      Serial.println("Wifi check with url reached max retry, trigger disconnected.");
       retryWifiCheck = 0;
       return false;
     }
@@ -35,7 +36,9 @@ bool wifiCheckWithUrl() {
 }
 
 void wifiCheck(){
-  if (WiFi.status() != WL_CONNECTED || wifiCheckWithUrl() != true) {
+  if (!WiFi.isConnected() || !WiFi.localIP().isSet() || wifiCheckWithUrl() != true) {
+    Serial.println("Wifi status disconnected (" + String(WiFi.status()) + ")");
+    // Serial.println(WiFi.localIP());
     wifiDisconnected();
   }
 }
@@ -48,21 +51,29 @@ void wifiBegin(){
     wifiDisconnected();
   });
 
-  // WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& event)
-  // {
-    // Serial.print("onStationModeGotIP, IP: ");
-    // Serial.println(WiFi.localIP());
-  // });
+  Serial.println("Auto reconnect: " + String(WiFi.getAutoReconnect()));
 
   wifiConnect();
 }
 
+#define MAX_WIFI_CONNECT_RETRY 3
+unsigned int wifiConnectRetry = 0;
 void wifiConnect(){
   Serial.println("Connect to wifi.");
 
+  WiFi.disconnect();
+  // WiFi.mode(WIFI_OFF);
+  // WiFi.mode(WIFI_STA);
   WiFi.begin(MYWIFISSID, MYWIFIPASSWORD);
   if (!wifiWait()) {
-    ESP.reset();
+    if (wifiConnectRetry < MAX_WIFI_CONNECT_RETRY) {
+      wifiConnectRetry++;
+      wifiConnect();
+    } else {
+      ESP.reset(); 
+    }
+  } else {
+    wifiConnectRetry = 0;
   }
 }
 
@@ -75,6 +86,7 @@ void wifiReConnect(){
   }
 }
 
+// could use WiFi.waitForConnectResult() instead
 bool wifiWait(){
   // Wait for connection
   int attempt = 0;
@@ -92,12 +104,13 @@ bool wifiWait(){
   return true;
 }
 
+// could use Wifi.macAddress() instead -> String ESP8266WiFiSTAClass::macAddress(void)
 String macAddr = "";
 String wifiGetMac(){
   if (macAddr.length() == 0) {
     byte mac[6];
     WiFi.macAddress(mac);
-    macAddr = String(mac[5],HEX);
+    macAddr = Wifi.macAddress();
     macAddr += "-" + String(mac[4],HEX);
     macAddr += "-" + String(mac[3],HEX);
     macAddr += "-" + String(mac[2],HEX);

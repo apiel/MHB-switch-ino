@@ -1,6 +1,6 @@
 #include <ESP8266mDNS.h>
 
-#define FIRMWARE_VERSION "0.0.17"
+#define FIRMWARE_VERSION "0.0.19"
 #define DEVICE_ID "MHB_switch"
 
 // #define WEMOS // for test
