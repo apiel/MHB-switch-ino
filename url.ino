@@ -1,7 +1,7 @@
 void callUrl(String route, String params) {
     HTTPClient http;  //Declare an object of class HTTPClient
   
-    String url = route + "?name=" + eepromRead();
+    String url = route + "?device=" + String(DEVICE_ID);
     url += "&mac=" + wifiGetMac() + "&ip=" + WiFi.localIP().toString() + params;
     url.replace(" ", "+");
     Serial.println(url);

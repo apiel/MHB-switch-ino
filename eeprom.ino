@@ -1,3 +1,5 @@
+#ifdef USE_EEPROM
+
 #include <EEPROM.h>
 
 #define EEPROM_SIZE 50
@@ -30,4 +32,6 @@ void eepromWrite(String value) {
   EEPROM.commit();
   Serial.println("Write eeprom (" + String(len) + "): '" + value + "'");
 }
+
+#endif
 

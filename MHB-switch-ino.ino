@@ -1,12 +1,13 @@
 #include <ESP8266mDNS.h>
 
-#define FIRMWARE_VERSION "0.0.13"
+#define FIRMWARE_VERSION "0.0.17"
 #define DEVICE_ID "MHB_switch"
 
 // #define WEMOS // for test
 // #define BTN_RELAY_TIMER
 // #define RF_ENABLE
 #define BTN2_ENABLE
+#define USE_EEPROM
 
 // for sonoff basic use generic esp8266 - 1M no Spiffs - DOUT
 
@@ -14,10 +15,12 @@ void setup(void){
   Serial.begin(115200);
   Serial.print("Firmware version ");
   Serial.println(FIRMWARE_VERSION);
-  wifiConnect();
-  eepromBegin();
+  wifiBegin();
+  #ifdef USE_EEPROM
+    eepromBegin();
+  #endif
 
-  if (MDNS.begin(String(DEVICE_ID) + " " + eepromRead())) {
+  if (MDNS.begin(String(DEVICE_ID))) {
     Serial.println("MDNS responder started");
   }
 

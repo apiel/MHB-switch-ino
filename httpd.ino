@@ -13,13 +13,16 @@ void handleRoot() {
   Serial.println("> Handle root.");
   String message = "Hello from esp8266 MHB-switch.\n\n";
   message += "version:      " + String(FIRMWARE_VERSION) + "\n";
+  #ifdef USE_EEPROM
   message += "eeprom name:  " + eepromRead() + "\n";
+  #endif
   message += "device id:    " + String(DEVICE_ID) + "\n";
   message += "mac address:  " + wifiGetMac() + "\n";
   message += "relay status: " + relayGetStatus() + "\n";
   server.send(200, "text/plain", message);
 }
 
+#ifdef USE_EEPROM
 void handleName() {
   Serial.println("> Handle Name.");
   if (server.hasArg("value")) { 
@@ -30,6 +33,7 @@ void handleName() {
     server.send ( 400, "text/plain", "Update device name, parameter missing. Provide value e.g: http://sonoff.local/name?value=my+device");
   } 
 }
+#endif
 
 void handleOta() {
   Serial.println("> Handle Ota.");
@@ -100,7 +104,11 @@ void handleUpnpSetup() {
   message += "<device>";
   message += "<deviceType>urn:Belkin:device:controllee:1</deviceType>";
   message += "<friendlyName>";
+  #ifdef USE_EEPROM
   message += eepromRead();
+  #else
+  message += uid;
+  #endif
   message += "</friendlyName>";
   message += "<manufacturer>Belkin International Inc.</manufacturer>";
   message += "<modelName>Emulated Socket</modelName>";
@@ -163,7 +171,9 @@ void httpdInit(){
   server.on("/", handleRoot);
   server.on("/ping", handlePing);
   server.on("/reboot", handleReboot);
+  #ifdef USE_EEPROM
   server.on("/name", handleName);
+  #endif
   server.on("/ota", handleOta);
   server.on("/on", handleRelayOn);
   server.on("/off", handleRelayOff);
