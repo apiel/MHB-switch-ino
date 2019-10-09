@@ -8,11 +8,15 @@ char packetBuffer[UDP_TX_PACKET_MAX_SIZE];
 
 WiFiUDP UDP;
 
-const unsigned long SSDPtimeout = 3UL*60UL*1000UL + millis(); // 3min
+unsigned long SSDPtimeout = 2UL*60UL*1000UL + millis(); // 2min
 
 void SSDPhandle(){
   if (millis() < SSDPtimeout) {
     SSDPhandleMulticast();
+  } else if (SSDPtimeout > 0) {
+    Serial.println("Stop UDP multicast");
+    UDP.stop();
+    SSDPtimeout = 0;
   }
 }
 
