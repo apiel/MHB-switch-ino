@@ -17,7 +17,7 @@ void handleRoot() {
   message += "eeprom name:  " + eepromRead() + "\n";
   #endif
   message += "device id:    " + String(DEVICE_ID) + "\n";
-  message += "mac address:  " + wifiGetMac() + "\n";
+  message += "mac address:  " + WiFi.macAddress() + "\n";
   message += "relay status: " + relayGetStatus() + "\n";
   server.send(200, "text/plain", message);
 }
@@ -98,7 +98,7 @@ void handleRelayTimer() {
 
 void handleUpnpSetup() {
   Serial.println("> Handle Upnp setup.");
-  String uid = String(DEVICE_ID) + "-" + wifiGetMac();
+  String uid = String(DEVICE_ID) + "-" + WiFi.macAddress();
   String message = "<?xml version=\"1.0\"?>";
   message += "<root>";
   message += "<device>";

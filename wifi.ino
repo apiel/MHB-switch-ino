@@ -104,19 +104,3 @@ bool wifiWait(){
   return true;
 }
 
-// could use Wifi.macAddress() instead -> String ESP8266WiFiSTAClass::macAddress(void)
-String macAddr = "";
-String wifiGetMac(){
-  if (macAddr.length() == 0) {
-    byte mac[6];
-    WiFi.macAddress(mac);
-    macAddr = String(mac[5],HEX);
-    macAddr += "-" + String(mac[4],HEX);
-    macAddr += "-" + String(mac[3],HEX);
-    macAddr += "-" + String(mac[2],HEX);
-    macAddr += "-" + String(mac[1],HEX);
-    macAddr += "-" + String(mac[0],HEX); 
-  }
-  return macAddr;
-}
-
