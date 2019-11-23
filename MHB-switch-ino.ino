@@ -1,12 +1,14 @@
 #include <ESP8266mDNS.h>
+#include <ClickButton.h> // need to be there for buttonDefaultActions
 
-#define FIRMWARE_VERSION "0.0.19"
+#define FIRMWARE_VERSION "0.0.20"
 #define DEVICE_ID "MHB_switch"
 
 // #define WEMOS // for test
 // #define BTN_RELAY_TIMER
 // #define RF_ENABLE
 #define BTN2_ENABLE
+// #define BTN2_MIRROR_DEFAULT
 #define USE_EEPROM
 
 // for sonoff basic use generic esp8266 - 1M no Spiffs - DOUT
