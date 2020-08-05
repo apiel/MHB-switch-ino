@@ -1,10 +1,11 @@
 #include <ESP8266mDNS.h>
 #include <ClickButton.h> // need to be there for buttonDefaultActions
+#include <ESPAsyncWebServer.h> // need to be there for httpd
 
 #define FIRMWARE_VERSION "0.0.20"
 #define DEVICE_ID "MHB_switch"
 
-// #define WEMOS // for test
+#define WEMOS // for test
 // #define BTN_RELAY_TIMER
 // #define RF_ENABLE
 #define BTN2_ENABLE
@@ -33,6 +34,7 @@ void setup(void){
     rfInit();
   #endif
   SSDPbegin();
+  thingInit();
 }
 
 void loop(void){
@@ -42,5 +44,6 @@ void loop(void){
   buttonHandle();
   relayHandleTimer();
   arpHandle();
+  thingHandle();
 }
 

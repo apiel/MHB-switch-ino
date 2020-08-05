@@ -1,7 +1,12 @@
-#include <ESP8266WebServer.h>
-#include <ESP8266httpUpdate.h>
+//#include <ESP8266WebServer.h>
+//#include <ESP8266httpUpdate.h>
 
-ESP8266WebServer server(80);
+//ESP8266WebServer server(8080);
+
+#include <ESPAsyncWebServer.h>
+// #include <ESPAsyncTCP.h>
+
+AsyncWebServer server(80);
 
 #ifdef WEMOS
     #define PIN_LED 2
@@ -9,7 +14,7 @@ ESP8266WebServer server(80);
     #define PIN_LED 13
 #endif
 
-void handleRoot() {
+void handleRoot(AsyncWebServerRequest *request) {
   Serial.println("> Handle root.");
   String message = "Hello from esp8266 MHB-switch.\n\n";
   message += "version:      " + String(FIRMWARE_VERSION) + "\n";
@@ -19,9 +24,11 @@ void handleRoot() {
   message += "device id:    " + String(DEVICE_ID) + "\n";
   message += "mac address:  " + WiFi.macAddress() + "\n";
   message += "relay status: " + relayGetStatus() + "\n";
-  server.send(200, "text/plain", message);
+
+  request->send(200, "text/plain", message);
 }
 
+/*
 #ifdef USE_EEPROM
 void handleName() {
   Serial.println("> Handle Name.");
@@ -166,8 +173,15 @@ void handleNotFound(){
   Serial.println("> Handle not found.");
   server.send(404, "text/plain", "Not found");
 }
-
+*/
 void httpdInit(){
+  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "Hello, world");
+  });
+  server.on("/", HTTP_GET, handleRoot);
+  server.begin();
+
+  /*
   server.on("/", handleRoot);
   server.on("/ping", handlePing);
   server.on("/reboot", handleReboot);
@@ -184,10 +198,11 @@ void httpdInit(){
   server.onNotFound(handleNotFound);
 
   server.begin();
+  */
   Serial.println("HTTP server started");
 }
 
 void httpdHandle(){
-  server.handleClient();
+  //server.handleClient();
 }
 
