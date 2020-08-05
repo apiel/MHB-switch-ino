@@ -44,6 +44,10 @@ String relayGetStatus() {
   return "ON";
 }
 
+bool relayIsOn() {
+  relayState == RELAY_ON;
+}
+
 int relayGetState() {
   return relayState;
 }

@@ -9,7 +9,7 @@ const char *ledTypes[] = {"OnOffSwitch", "Sonoff", nullptr};
 ThingDevice led("switch", "Built-in switch", ledTypes);
 ThingProperty ledOn("on", "", BOOLEAN, "OnOffProperty");
 
-bool lastOn = false;
+bool lastOn = relayIsOn();
 int portAdapter = 8080;
 
 void thingInit() {

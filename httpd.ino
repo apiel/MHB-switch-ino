@@ -1,10 +1,5 @@
-//#include <ESP8266WebServer.h>
-//#include <ESP8266httpUpdate.h>
-
-//ESP8266WebServer server(8080);
-
+#include <ESP8266httpUpdate.h>
 #include <ESPAsyncWebServer.h>
-// #include <ESPAsyncTCP.h>
 
 AsyncWebServer server(80);
 
@@ -28,24 +23,35 @@ void handleRoot(AsyncWebServerRequest *request) {
   request->send(200, "text/plain", message);
 }
 
-/*
+void handlePing(AsyncWebServerRequest *request) {
+  Serial.println("> Handle ping.");
+  request->send(200, "text/plain", "pong");
+}
+
+void handleReboot(AsyncWebServerRequest *request) {
+  Serial.println("> Handle reboot.");
+  request->send(200, "text/plain", "reboot");
+  delay(500);
+  ESP.reset();
+}
+
 #ifdef USE_EEPROM
-void handleName() {
+void handleName(AsyncWebServerRequest *request) {
   Serial.println("> Handle Name.");
-  if (server.hasArg("value")) { 
-    String value = server.arg("value");
+  if (request->hasParam("value")) { 
+    String value = request->getParam("value")->value();
     eepromWrite(value);
-    server.send ( 200, "text/plain", "OK.");
+    request->send ( 200, "text/plain", "OK.");
   } else {
-    server.send ( 400, "text/plain", "Update device name, parameter missing. Provide value e.g: http://sonoff.local/name?value=my+device");
+    request->send ( 400, "text/plain", "Update device name, parameter missing. Provide value e.g: http://sonoff.local/name?value=my+device");
   } 
 }
 #endif
 
-void handleOta() {
+void handleOta(AsyncWebServerRequest *request) {
   Serial.println("> Handle Ota.");
-  if (server.hasArg("url")) { 
-    String url = server.arg("url");
+  if (request->hasParam("url")) { 
+    String url = request->getParam("url")->value();
 
     WiFiClient client;
     ESPhttpUpdate.setLedPin(PIN_LED, LOW);
@@ -53,57 +59,50 @@ void handleOta() {
    
     if (ret == HTTP_UPDATE_FAILED) {
       String message = "HTTP_UPDATE_FAILD Error (" + String(ESPhttpUpdate.getLastError()) + "): " + ESPhttpUpdate.getLastErrorString();
-      server.send ( 200, "text/plain", message);
+      request->send ( 200, "text/plain", message);
       Serial.println(message);
     } else if (ret == HTTP_UPDATE_NO_UPDATES) {
-      server.send ( 200, "text/plain", "HTTP_UPDATE_NO_UPDATES.");
+      request->send ( 200, "text/plain", "HTTP_UPDATE_NO_UPDATES.");
       Serial.println("HTTP_UPDATE_NO_UPDATES");
     } else if (ret == HTTP_UPDATE_OK) {
-      server.send ( 200, "text/plain", "HTTP_UPDATE_OK.");
+      request->send ( 200, "text/plain", "HTTP_UPDATE_OK.");
       Serial.println("HTTP_UPDATE_OK");
     } else {
-      server.send ( 200, "text/plain", "Try to update firmware with unknown response."); 
+      request->send ( 200, "text/plain", "Try to update firmware with unknown response."); 
       Serial.println("UNKNOWN_RETURN");
     }
   }
   else {
-    server.send ( 400, "text/plain", "Update firmware parameter missing. Provide host and path e.g: http://sonoff.local/ota?url=http://192.168.0.120/firmware.bin");
+    request->send ( 400, "text/plain", "Update firmware parameter missing. Provide host and path e.g: http://sonoff.local/ota?url=http://192.168.0.120/firmware.bin");
   }  
 }
 
-void handleReboot() {
-  Serial.println("> Handle reboot.");
-  server.send(200, "text/plain", "reboot");
-  delay(500);
-  ESP.reset();
-}
-
-void handleRelayOn() {
+void handleRelayOn(AsyncWebServerRequest *request) {
   Serial.println("> Handle relay on.");
   relayOn();
-  server.send(200, "text/plain", "Set relay on."); 
+  request->send(200, "text/plain", "Set relay on."); 
 }
 
-void handleRelayOff() {
+void handleRelayOff(AsyncWebServerRequest *request) {
   Serial.println("> Handle relay off.");
   relayOff();
-  server.send(200, "text/plain", "Set relay off."); 
+  request->send(200, "text/plain", "Set relay off."); 
 }
 
-void handleRelayToggle() {
+void handleRelayToggle(AsyncWebServerRequest *request) {
   Serial.println("> Handle relay toggle.");
   relayToggle();
   String message = "Toggle relay to " + relayGetStatus() + ".";
-  server.send(200, "text/plain", message); 
+  request->send(200, "text/plain", message); 
 }
 
-void handleRelayTimer() {
+void handleRelayTimer(AsyncWebServerRequest *request) {
   Serial.println("> Handle relay timer.");
   relaySetTimer();
-  server.send(200, "text/plain", "Set relay timer."); 
+  request->send(200, "text/plain", "Set relay timer."); 
 }
 
-void handleUpnpSetup() {
+void handleUpnpSetup(AsyncWebServerRequest *request) {
   Serial.println("> Handle Upnp setup.");
   String uid = String(DEVICE_ID) + "-" + WiFi.macAddress();
   String message = "<?xml version=\"1.0\"?>";
@@ -134,16 +133,18 @@ void handleUpnpSetup() {
   message += "</serviceList>";
   message += "</device>";
   message += "</root>";
-  server.send(200, "application/xml", message);
+  request->send(200, "application/xml", message);
 }
 
 // curl -A '' -X POST -H 'Content-type: text/xml; charset="utf-8"' -H 'SOAPACTION: "urn:Belkin:service:basicevent:1#GetBinaryState"' -s http://192.168.0.25/upnp/control/basicevent1 --data '<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:SetBinaryState xmlns:u="urn:Belkin:service:basicevent:1"><BinaryState>1</BinaryState></u:SetBinaryState></s:Body></s:Envelope>'
 // https://gist.github.com/aussieade/7647e2c892bf511510566a7d95f40d95
 
-void handleUpnpController(){
+void handleUpnpController(AsyncWebServerRequest *request){
   Serial.println("> Handle Upnp controller.");
-  if (server.args()) {
-    String body = server.arg(0);
+
+  if (request->args()) {
+    int pos = 0;
+    String body = request->arg(pos).c_str();
     if (body.indexOf("SetBinaryState") != -1) {
       Serial.println("Upnp controller set state.");
       if (body.indexOf("<BinaryState>1</BinaryState>") != -1) {
@@ -161,27 +162,16 @@ void handleUpnpController(){
   message += "</u:GetBinaryStateResponse>";
   message += "</s:Body>";
   message += "</s:Envelope>";
-  server.send(200, "application/xml", message);
+  request->send(200, "application/xml", message);
 }
 
-void handlePing() {
-  Serial.println("> Handle ping.");
-  server.send(200, "text/plain", "pong");
-}
 
-void handleNotFound(){
+void handleNotFound(AsyncWebServerRequest *request){
   Serial.println("> Handle not found.");
-  server.send(404, "text/plain", "Not found");
+  request->send(404, "text/plain", "Not found");
 }
-*/
-void httpdInit(){
-  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Hello, world");
-  });
-  server.on("/", HTTP_GET, handleRoot);
-  server.begin();
 
-  /*
+void httpdInit(){
   server.on("/", handleRoot);
   server.on("/ping", handlePing);
   server.on("/reboot", handleReboot);
@@ -196,9 +186,9 @@ void httpdInit(){
   server.on("/wemo/setup.xml", handleUpnpSetup);
   server.on("/upnp/control/basicevent1", handleUpnpController);
   server.onNotFound(handleNotFound);
-
+  
   server.begin();
-  */
+
   Serial.println("HTTP server started");
 }
 
