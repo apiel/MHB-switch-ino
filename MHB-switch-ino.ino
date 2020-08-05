@@ -38,7 +38,6 @@ void setup(void){
 }
 
 void loop(void){
-  httpdHandle();
   SSDPhandle();
   wifiCheck();
   buttonHandle();

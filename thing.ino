@@ -5,8 +5,15 @@
 
 WebThingAdapter *adapter;
 
-const char *ledTypes[] = {"OnOffSwitch", "Sonoff", nullptr};
-ThingDevice led("switch", "Built-in switch", ledTypes);
+const char *ledTypes[] = {"OnOffSwitch", nullptr};
+
+#ifdef USE_EEPROM
+  String deviceDesc = eepromRead();
+#else
+  String deviceDesc = uid;
+#endif
+
+ThingDevice led("switch", deviceDesc.c_str(), ledTypes);
 ThingProperty ledOn("on", "", BOOLEAN, "OnOffProperty");
 
 bool lastOn = relayIsOn();

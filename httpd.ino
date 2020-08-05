@@ -192,7 +192,3 @@ void httpdInit(){
   Serial.println("HTTP server started");
 }
 
-void httpdHandle(){
-  //server.handleClient();
-}
-
