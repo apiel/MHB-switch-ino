@@ -5,16 +5,9 @@
 
 WebThingAdapter *adapter;
 
-const char *ledTypes[] = {"OnOffSwitch", nullptr};
-
-#ifdef USE_EEPROM
-  String deviceDesc = eepromRead();
-#else
-  String deviceDesc = uid;
-#endif
-
-ThingDevice led("switch", deviceDesc.c_str(), ledTypes);
-ThingProperty ledOn("on", "", BOOLEAN, "OnOffProperty");
+const char *deviceTypes[] = {"OnOffSwitch", nullptr};
+ThingDevice device("switch", "Sonoff", deviceTypes);
+ThingProperty deviceOn("on", "", BOOLEAN, "OnOffProperty");
 
 bool lastOn = relayIsOn();
 int portAdapter = 8080;
@@ -24,8 +17,15 @@ void thingInit() {
 
   adapter = new WebThingAdapter("w25", WiFi.localIP(), portAdapter);
 
-  led.addProperty(&ledOn);
-  adapter->addDevice(&led);
+#ifdef USE_EEPROM
+  device.title = eepromRead().c_str();
+#else
+  String uid = String(DEVICE_ID) + "-" + WiFi.macAddress();
+  device.title = uid.c_str();
+#endif
+  
+  device.addProperty(&deviceOn);
+  adapter->addDevice(&device);
   adapter->begin();
 
   Serial.print("http://");
@@ -33,12 +33,12 @@ void thingInit() {
   Serial.print(":");
   Serial.print(portAdapter);
   Serial.print("/things/");
-  Serial.println(led.id);
+  Serial.println(device.id);
 }
 
 void thingHandle() {
   adapter->update();
-  bool on = ledOn.getValue().boolean;
+  bool on = deviceOn.getValue().boolean;
   if (on != lastOn) {
     Serial.println("Thing action.");
     if (on) {
