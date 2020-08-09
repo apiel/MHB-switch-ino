@@ -41,10 +41,11 @@ void thingHandle() {
   bool on = deviceOn.getValue().boolean;
   if (on != lastOn) {
     Serial.println("Thing action.");
+    // this was fixed but not able to upload because ota failed on .22
     if (on) {
-      relayOff();
-    } else {
       relayOn();
+    } else {
+      relayOff();
     }
   }
   lastOn = on;
