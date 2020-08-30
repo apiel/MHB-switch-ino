@@ -48,33 +48,49 @@ void handleName(AsyncWebServerRequest *request) {
 }
 #endif
 
+const char* otaHtml = "<form method='POST' action='/ota' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>";
 void handleOta(AsyncWebServerRequest *request) {
-  Serial.println("> Handle Ota.");
-  if (request->hasParam("url")) { 
-    String url = request->getParam("url")->value();
-
-    WiFiClient client;
-    ESPhttpUpdate.setLedPin(PIN_LED, LOW);
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, url);
-   
-    if (ret == HTTP_UPDATE_FAILED) {
-      String message = "HTTP_UPDATE_FAILD Error (" + String(ESPhttpUpdate.getLastError()) + "): " + ESPhttpUpdate.getLastErrorString();
-      request->send ( 200, "text/plain", message);
-      Serial.println(message);
-    } else if (ret == HTTP_UPDATE_NO_UPDATES) {
-      request->send ( 200, "text/plain", "HTTP_UPDATE_NO_UPDATES.");
-      Serial.println("HTTP_UPDATE_NO_UPDATES");
-    } else if (ret == HTTP_UPDATE_OK) {
-      request->send ( 200, "text/plain", "HTTP_UPDATE_OK.");
-      Serial.println("HTTP_UPDATE_OK");
-    } else {
-      request->send ( 200, "text/plain", "Try to update firmware with unknown response."); 
-      Serial.println("UNKNOWN_RETURN");
+  AsyncWebServerResponse *response = request->beginResponse(200, "text/html", otaHtml);
+  response->addHeader("Connection", "close");
+  response->addHeader("Access-Control-Allow-Origin", "*");
+  request->send(response);
+}
+void handleOtaUpdate(AsyncWebServerRequest *request) {
+    // the request handler is triggered after the upload has finished... 
+    // create the response, add header, and send response
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", (Update.hasError())?"FAIL":"<html><body><div>SUCCESS, need to <a href='/reboot'>reboot</a></div></body></html>");
+    response->addHeader("Connection", "close");
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    // restartRequired = true;  // Tell the main loop to restart the ESP
+    request->send(response);
+}
+void handleOtaUpdateChunk(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+    if(!index){ // if index == 0 then this is the first frame of data
+      Serial.printf("UploadStart: %s\n", filename.c_str());
+      Serial.setDebugOutput(true);
+      
+      // calculate sketch space required for the update
+      uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+      if(!Update.begin(maxSketchSpace)){//start with max available size
+        Update.printError(Serial);
+      }
+      Update.runAsync(true); // tell the updaterClass to run in async mode
     }
-  }
-  else {
-    request->send ( 400, "text/plain", "Update firmware parameter missing. Provide host and path e.g: http://sonoff.local/ota?url=http://192.168.0.120/firmware.bin");
-  }  
+
+    //Write chunked data to the free sketch space
+    if(Update.write(data, len) != len){
+        Update.printError(Serial);
+    }
+    
+    if(final){ // if the final flag is set then this is the last frame of data
+      if(Update.end(true)){ //true to set the size to the current progress
+          Serial.printf("Update Success: %u B\nNeed to reboot...\n", index+len);
+          // ESP.restart();
+        } else {
+          Update.printError(Serial);
+        }
+        Serial.setDebugOutput(false);
+    }
 }
 
 void handleRelayOn(AsyncWebServerRequest *request) {
@@ -178,7 +194,9 @@ void httpdInit(){
   #ifdef USE_EEPROM
   server.on("/name", handleName);
   #endif
-  server.on("/ota", handleOta);
+  server.on("/ota", HTTP_GET, handleOta);
+  server.on("/ota", HTTP_POST, handleOtaUpdate, handleOtaUpdateChunk);
+  
   server.on("/on", handleRelayOn);
   server.on("/off", handleRelayOff);
   server.on("/toggle", handleRelayToggle);

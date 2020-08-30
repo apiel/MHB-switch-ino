@@ -2,7 +2,7 @@
 #include <ClickButton.h> // need to be there for buttonDefaultActions
 #include <ESPAsyncWebServer.h> // need to be there for httpd
 
-#define FIRMWARE_VERSION "0.0.22"
+#define FIRMWARE_VERSION "0.0.25"
 #define DEVICE_ID "MHB_switch"
 
 // #define WEMOS // for test
